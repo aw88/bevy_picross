@@ -1,9 +1,10 @@
 use bevy::prelude::*;
 
 mod board;
+mod main_menu;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
-enum AppState {
+pub enum AppState {
     MainMenu,
     Puzzle,
 }
@@ -15,17 +16,10 @@ fn main() {
     App::build()
         .add_plugins(DefaultPlugins)
         .add_state(AppState::MainMenu)
-        .add_system_set(
-            SystemSet::on_enter(AppState::MainMenu)
-                .with_system(hello.system())
-        )
-        // .add_plugin(board::BoardPlugin)
-        // .add_startup_system(spawn_cameras.system())
+        .add_plugin(main_menu::MainMenuPlugin)
+        .add_plugin(board::BoardPlugin)
+        .add_startup_system(spawn_cameras.system())
         .run();
-}
-
-fn hello() {
-    print!("Hello");
 }
 
 fn spawn_cameras(mut commands: Commands) {
