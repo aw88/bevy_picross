@@ -1,12 +1,16 @@
 use bevy::prelude::*;
+use crate::AppState;
 
 pub struct BoardPlugin;
 
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app
-            .add_startup_system(setup::spawn_grid.system())
-            .add_startup_system(setup::spawn_cells.system());
+            .add_system_set(
+                SystemSet::on_enter(AppState::Puzzle)
+                    .with_system(setup::spawn_grid.system())
+                    .with_system(setup::spawn_cells.system())
+            );
     }
 }
 
