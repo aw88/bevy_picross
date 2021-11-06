@@ -5,13 +5,19 @@ pub struct BoardPlugin;
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app
-            .add_startup_system(setup::spawn_grid.system());
+            .add_startup_system(setup::spawn_grid.system())
+            .add_startup_system(setup::spawn_cells.system());
     }
 }
+
+pub struct Cell;
+pub struct Coordinates;
 
 mod config {
     use super::*;
 
+    pub const CELL_COLOR: Color = Color::rgb(0.95, 0.95, 0.95);
+    pub const CELL_COLOR_ALT: Color = Color::rgb(0.75, 0.75, 0.75);
     pub const GRID_COLOR: Color = Color::rgb(0.1, 0.1, 0.1);
 
     pub const CELL_SIZE: f32 = 32.0;
@@ -83,6 +89,53 @@ mod setup {
             transform: Transform::from_xyz(x, y, 1.0),
             material: grid_handle,
             ..Default::default()
+        }
+    }
+
+    pub fn spawn_cells(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
+        let cell_handle = materials.add(CELL_COLOR.into());
+        let cell_handle_alt = materials.add(CELL_COLOR_ALT.into());
+
+        for row in 1..=GRID_CELL_SIZE {
+            for column in 1..=GRID_CELL_SIZE {
+                let handle = match get_cell_color(row, column) {
+                    true => cell_handle.clone(),
+                    false => cell_handle_alt.clone(),
+                };
+
+                commands.spawn_bundle(CellBundle::new(row, column, handle));
+            }
+        }
+    }
+
+    // Simple checkerboard pattern between 5x5 blocks
+    fn get_cell_color(row: u8, column: u8) -> bool {
+        (((row - 1) / 5) ^ ((column - 1) / 5)) & 1 == 1
+    }
+
+    #[derive(Bundle)]
+    struct CellBundle {
+        cell: Cell,
+        coordinates: Coordinates,
+        #[bundle]
+        cell_fill: SpriteBundle,
+    }
+
+    impl CellBundle {
+        fn new(column: u8, row: u8, cell_handle: Handle<ColorMaterial>) -> Self {
+            let x = GRID_LEFT_EDGE + CELL_SIZE * column as f32 - 0.5 * CELL_SIZE;
+            let y = GRID_BOTTOM_EDGE + CELL_SIZE * row as f32 - 0.5 * CELL_SIZE;
+
+            CellBundle {
+                cell: Cell,
+                coordinates: Coordinates,
+                cell_fill: SpriteBundle {
+                    sprite: Sprite::new(Vec2::new(CELL_SIZE, CELL_SIZE)),
+                    material: cell_handle,
+                    transform: Transform::from_xyz(x, y, 0.0),
+                    ..Default::default()
+                },
+            }
         }
     }
 }
