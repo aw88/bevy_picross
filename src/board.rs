@@ -1,11 +1,27 @@
 use bevy::prelude::*;
 use crate::AppState;
+use crate::solution::Solution;
 
 pub struct BoardPlugin;
 
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app
+            .insert_resource(Solution {
+                size: (10, 10),
+                tiles: vec![
+                    vec![1, 0, 0, 1, 0, 0, 0, 0, 0, 1,],
+                    vec![1, 1, 0, 1, 1, 0, 0, 0, 1, 1,],
+                    vec![0, 1, 1, 0, 1, 1, 1, 1, 1, 0,],
+                    vec![0, 0, 1, 1, 0, 0, 0, 0, 0, 1,],
+                    vec![0, 0, 1, 0, 0, 0, 0, 0, 0, 0,],
+                    vec![0, 0, 1, 0, 1, 0, 0, 0, 0, 1,],
+                    vec![0, 1, 0, 1, 1, 0, 0, 0, 1, 1,],
+                    vec![0, 1, 1, 0, 0, 0, 1, 0, 0, 0,],
+                    vec![0, 1, 1, 0, 0, 1, 1, 1, 0, 0,],
+                    vec![0, 0, 1, 1, 0, 0, 0, 0, 0, 1,],
+                ]
+            })
             .add_system_set(
                 SystemSet::on_enter(AppState::Puzzle)
                     .with_system(setup::spawn_grid.system())
@@ -25,7 +41,7 @@ mod config {
     pub const GRID_COLOR: Color = Color::rgb(0.1, 0.1, 0.1);
 
     pub const CELL_SIZE: f32 = 32.0;
-    pub const GRID_CELL_SIZE: u8 = 15;
+    pub const GRID_CELL_SIZE: u8 = 10;
     pub const GRID_SIZE: f32 = GRID_CELL_SIZE as f32 * CELL_SIZE;
     pub const MINOR_LINE_THICKNESS: f32 = 2.0;
     pub const MAJOR_LINE_THICKNESS: f32 = 4.0;

@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 mod board;
 mod main_menu;
+mod solution;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum AppState {
