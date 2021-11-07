@@ -66,7 +66,7 @@ mod setup {
                     align_items: AlignItems::Center,
                     ..Default::default()
                 },
-                material: button_color_handle.clone(),
+                material: button_color_handle,
                 ..Default::default()
             })
             .insert(PlayButton)
