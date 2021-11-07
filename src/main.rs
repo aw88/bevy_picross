@@ -10,8 +10,8 @@ pub enum AppState {
     Puzzle,
 }
 
-struct MainCamera;
-struct UiCamera;
+pub struct MainCamera;
+pub struct UiCamera;
 
 fn main() {
     App::build()

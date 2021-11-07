@@ -31,7 +31,10 @@ impl Plugin for BoardPlugin {
 }
 
 pub struct Cell;
-pub struct Coordinates;
+pub struct Coordinates {
+    x: u8,
+    y: u8,
+}
 
 mod config {
     use super::*;
@@ -148,7 +151,10 @@ mod setup {
 
             CellBundle {
                 cell: Cell,
-                coordinates: Coordinates,
+                coordinates: Coordinates {
+                    x: column,
+                    y: row,
+                },
                 cell_fill: SpriteBundle {
                     sprite: Sprite::new(Vec2::new(CELL_SIZE, CELL_SIZE)),
                     material: cell_handle,
@@ -156,6 +162,44 @@ mod setup {
                     ..Default::default()
                 },
             }
+        }
+    }
+}
+
+mod input {
+    use super::*;
+    use crate::MainCamera;
+
+    pub struct CellClick {
+        pub selected_cell: Option<Entity>,
+    }
+
+    pub fn cell_click(
+        camera_query: Query<&Transform, With<MainCamera>>,
+        mouse_button_input: Res<Input<MouseButton>>,
+        windows: Res<Windows>,
+        mut cell_click_events: EventWriter<CellClick>,
+    ) {
+        if mouse_button_input.just_pressed(MouseButton::Left) {
+            let window = windows.get_primary().expect("Primary window not found.");
+            let mut cursor_position = window
+                .cursor_position()
+                .expect("Cursor position not found.");
+
+            let camera_transform = camera_query.single().expect("MainCamera not found.");
+            let window_size = Vec2::new(window.width() as f32, window.height() as f32);
+
+            cursor_position -= 0.5 * window_size;
+
+            let world_quaternion = camera_transform.compute_matrix() * cursor_position.extend(0.0).extend(0.0);
+
+            let cursor_position_world = Vec2::new(world_quaternion.x, world_quaternion.y);
+
+            let selected_cell = None; // TODO: Find the right cell
+
+            cell_click_events.send(CellClick {
+                selected_cell,
+            });
         }
     }
 }
