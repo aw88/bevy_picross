@@ -4,7 +4,7 @@ use crate::AppState;
 pub struct MainMenuPlugin;
 
 impl Plugin for MainMenuPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app
             .init_resource::<ButtonMaterials>()
             .add_system_set(SystemSet::on_enter(AppState::MainMenu)
@@ -16,6 +16,7 @@ impl Plugin for MainMenuPlugin {
     }
 }
 
+#[derive(Component)]
 struct PlayButton;
 
 pub struct ButtonMaterials {
@@ -52,11 +53,8 @@ mod setup {
 
     pub fn create_menu(
         mut commands: Commands,
-        mut materials: ResMut<Assets<ColorMaterial>>,
         asset_server: Res<AssetServer>,
     ) {
-        let button_color_handle = materials.add(BUTTON_COLOR.into());
-
         commands
             .spawn_bundle(ButtonBundle {
                 style: Style {
@@ -66,7 +64,7 @@ mod setup {
                     align_items: AlignItems::Center,
                     ..Default::default()
                 },
-                material: button_color_handle,
+                color: BUTTON_COLOR.into(),
                 ..Default::default()
             })
             .insert(PlayButton)

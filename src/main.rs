@@ -10,13 +10,16 @@ pub enum AppState {
     Puzzle,
 }
 
+#[derive(Component)]
 pub struct MainCamera;
+
+#[derive(Component)]
 pub struct UiCamera;
 
 fn main() {
-    App::build()
+    App::new()
         .add_plugins(DefaultPlugins)
-        .add_state(AppState::MainMenu)
+        .add_state(AppState::Puzzle)
         .add_plugin(main_menu::MainMenuPlugin)
         .add_plugin(board::BoardPlugin)
         .add_startup_system(spawn_cameras.system())
