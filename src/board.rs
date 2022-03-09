@@ -33,6 +33,7 @@ impl Plugin for BoardPlugin {
                 SystemSet::on_update(AppState::Puzzle)
                     .with_system(input::cell_click.system())
                     .with_system(input::index_cells.system())
+                    .with_system(input::click_events.system())
             );
     }
 }
@@ -192,18 +193,26 @@ mod input {
     }
 
     pub struct CellClick {
-        pub selected_cell: Option<Entity>,
+        pub selected_cell: Entity,
+        pub mouse_button: MouseButton,
     }
 
     pub fn cell_click(
         camera_query: Query<&Transform, With<MainCamera>>,
-        cell_query: Query<(&Cell, &Coordinates)>,
         mouse_button_input: Res<Input<MouseButton>>,
         windows: Res<Windows>,
         cell_index: Res<CellIndex>,
         mut cell_click_events: EventWriter<CellClick>,
     ) {
-        if mouse_button_input.just_pressed(MouseButton::Left) {
+        let mouse_button = if mouse_button_input.just_pressed(MouseButton::Left) {
+            Some(MouseButton::Left)
+        } else if mouse_button_input.just_pressed(MouseButton::Right) {
+            Some(MouseButton::Right)
+        } else {
+            None
+        };
+
+        if mouse_button.is_some() {
             let window = windows.get_primary().expect("Primary window not found.");
             let mut cursor_position = window
                 .cursor_position()
@@ -218,24 +227,33 @@ mod input {
 
             let cursor_position_world = Vec2::new(world_quaternion.x, world_quaternion.y);
             let tile_coord = (cursor_position_world - Vec2::new(GRID_LEFT_EDGE, GRID_BOTTOM_EDGE)) / CELL_SIZE;
-            let coordinates = Coordinates {
-                x: tile_coord.x as u8,
-                y: tile_coord.y as u8,
-            };
 
-            let selected_cell = cell_index.cell_map.get(&coordinates)
-                .map(|e| *e);
+            if tile_coord.x > 0.0 && tile_coord.y > 0.0 {
+                let coordinates = Coordinates {
+                    x: tile_coord.x as u8,
+                    y: tile_coord.y as u8,
+                };
 
-            if selected_cell.is_some() {
-                let (_cell, coordinates) = cell_query.get(selected_cell.unwrap()).unwrap();
-                
-                println!("Clicked cell:  {:?}", selected_cell.unwrap());
-                println!("  coordinates: {:?}", coordinates);
+                let selected_cell = cell_index.cell_map.get(&coordinates)
+                    .map(|e| *e);
+
+                if selected_cell.is_some() {
+                    cell_click_events.send(CellClick {
+                        selected_cell: selected_cell.unwrap(),
+                        mouse_button: mouse_button.unwrap(),
+                    });
+                }
             }
+        }
+    }
 
-            cell_click_events.send(CellClick {
-                selected_cell,
-            });
+    pub fn click_events(
+        cell_query: Query<&Coordinates, With<Cell>>,
+        mut cell_click_events: EventReader<CellClick>,
+    ) {
+        for event in cell_click_events.iter() {
+            let coordinates = cell_query.get(event.selected_cell).unwrap();
+            println!("Clicked: {:?}, on {:?}", event.mouse_button, coordinates)
         }
     }
 
